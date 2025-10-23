@@ -1,0 +1,9 @@
+*.csv
+*.wav
+*.png
+.env/
+data/
+ckpts/
+textlesslib/
+speechlmscore_tool/
+**/__pycache__/
