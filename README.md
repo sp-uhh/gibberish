@@ -4,61 +4,15 @@ This is the code for the paper "Are These Even Words? Quantifying the Gibberishn
 
 [[project page + dataset download]](https://uhh.de/inf-sp-gibberish)
 
+> Significant research efforts are currently being dedicated to non-intrusive quality and intelligibility assessment, especially given how it enables curation of large scale datasets of in-the-wild speech data. However, with the increasing capabilities of generative models to synthesize high quality speech, new types of artifacts become relevant, such as generative hallucinations. While intrusive metrics are able to spot such sort of discrepancies from a reference signal, it is not clear how current non-intrusive methods react to high-quality phoneme confusions or, more extremely, gibberish speech. In this paper we explore how to factor in this aspect under a fully unsupervised setting by leveraging language models. Additionally, we publish LRS3-Gibberish, a dataset of high-quality synthesized gibberish speech for further development of measures to assess implausible sentences in spoken language, alongside code for calculating scores from a variety of speech language models.
+
+With the scripts in this repository, you can compute perplexity scores with TWIST [1], SpeechLMScore (6th layer) [2] and ASR (Parakeet[3,4]/Quartznet[5]) + LLM (GPT-2[6]).
+There is also a script to compute the non-intrusive quality/naturalness scores of DistillMOS [7] and UTMOSv2 [8], and a Jupyter notebook to compare distributions.
+
 ## Installation
 
-```
-pip install torch torchaudio distillmos evaluate nemo_toolkit['asr'] git+https://github.com/sarulab-speech/UTMOSv2.git git+https://github.com/facebookresearch/fairseq.git
-```
-
-### Textless lib (TWIST)
-
-The `textless` lib has very tight constraints, so they have to be loosened:
-
-1. Run `git clone https://github.com/facebookresearch/textlesslib.git`
-2. Change [L7-8 of `textlesslib/requirements.txt`](https://github.com/facebookresearch/textlesslib/blob/ba33d669d8284b4f7bfe81e7384e83ab799fe384/requirements.txt#L7C1-L8C14) to
-```
-numpy>=1.22.0
-numba>=0.53.0
-```
-3. Run `pip install -e ./textlesslib`
-
-### Fairseq (TWIST)
-
-To use `fairseq` with Python 3.11+, follow [this Github issue post](https://github.com/facebookresearch/fairseq/issues/5012#issuecomment-3185202948), commenting out the block
-```python
-if f._field_type is _FIELD and f.default.__class__.__hash__ is None:
-    raise ValueError(f'mutable default {type(f.default)} for field '
-                        f'{f.name} is not allowed: use default_factory')
-```
-in `{PYTHON_BASE}/lib/python3.1X/dataclasses.py`, where `PYTHON_BASE` is wherever your Python is installed.
-
-### UTMOSv2
-
-To be able to run UTMOSv2 with files in speaker subfolders, change [L174 in `utmosv2/_core/model
-/_common.py`](https://github.com/sarulab-speech/UTMOSv2/blob/3608fad976f18a0584e5837afa04fbc628572061/utmosv2/_core/model/_common.py#L174)
-
-```python
-if input_dir is not None:
-    res = [
-        DatasetSchema(
-            file_path=p,
-            dataset=predict_dataset,
-        )
-        for p in sorted(input_dir.glob("**/*.wav", recursive=True)) # This line
-    ]
-```
-
-### SpeechLMScore
-
-We had some issues running the original SpeechLMScore pipeline script, so we created a modified version that needs to be copied to the cloned repository. 
-Additionally, we modified the Python script of the last stage to create an output csv file in the same format as our other scripts do.
-
-```
-git clone https://github.com/soumimaiti/speechlmscore_tool.git
-cd speechlmscore_tool
-pip install -r requirements.txt
-./download_pretrained_models.sh
-cp ../speechlmscore_hack/* .
+```bash
+./install.sh
 ```
 
 ### Huggingface's Evaluate (ASR + LLM)
@@ -109,4 +63,22 @@ python calc_dnnmos.py --input_dir=data/earswham/test/gibberish --output_file=res
 ## License
 
 This code is licensed under the [GNU AGPLv3 license](https://spdx.org/licenses/AGPL-3.0-or-later.html).
+
 The dataset EARS-WHAM Gibberish Test is licensed under the [CC BY-NC 4.0 International license](https://www.creativecommons.org/licenses/by-nc/4.0/legalcode.en).
+
+## References
+
+[1] M. Hassid, T. Remez, T. A. Nguyen, et al., "Textually pretrained speech language models," in Advances in Neural Inf. Proc. Systems (NeurIPS), vol. 36, 2023.
+
+[2] S. Maiti, Y. Peng, T. Saeki, and S. Watanabe, "Speechlmscore: Evaluating speech generation using speech language model," in IEEE Int. Conf. on Acoustics, Speech and Signal Process. (ICASSP), 2023.
+
+[3] D. Rekesh, N. R. Koluguri, S. Kriman, et al., "Fast conformer with linearly scalable attention for efficient speech recognition," in IEEE Workshop on Automatic Speech Recognition and Understanding (ASRU), 2023.
+
+[4] H. Xu, F. Jia, S. Majumdar, H. Huang, S. Watanabe, and B. Ginsburg, “Efficient sequence transduction by jointly predicting tokens and durations,” in Int. Conf. on Machine Learning (ICML), 2023.
+
+[5] S. Kriman, S. Beliaev, B. Ginsburg, et al., "Quartznet: Deep automatic speech recognition with 1d time-channel separable convolutions," in IEEE Int. Conf. on Acoustics, Speech and Signal Process. (ICASSP), 2020.
+
+[6] A. Radford, J. Wu, R. Child, D. Luan, D. Amodei, I. Sutskever, et al., "Language models are unsupervised multitask learners," OpenAI blog, vol. 1, no. 8, p. 9, 2019.
+
+[7] B. Stahl and H. Gamper, “Distillation and pruning for scalable self-supervised representation-based speech quality assessment,” in ICASSP 2025-2025 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2025.
+[8] Baba, W. Nakata, Y. Saito, and H. Saruwatari, "The t05 system for the VoiceMOS Challenge 2024: Transfer learning from deep image classifier to naturalness MOS prediction of high-quality synthetic speech," in IEEE Spoken Language Technology Workshop (SLT), 2024.
