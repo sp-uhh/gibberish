@@ -1,9 +1,12 @@
 *.csv
 *.wav
 *.png
+*.log
 .env/
 data/
 ckpts/
 textlesslib/
 speechlmscore_tool/
+UTMOSv2/
 **/__pycache__/
+venv/
