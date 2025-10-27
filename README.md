@@ -15,6 +15,8 @@ There is also a script to compute the non-intrusive quality/naturalness scores o
 ./install.sh
 ```
 
+**Note:** This script installs patched versions of `fairseq`, `textlesslib` and `UTMOSv2` using `pip`. If you have any of these packages installed, it is advisable to use a fresh virtual environment to prevent interference.
+
 ### Huggingface's Evaluate (ASR + LLM)
 
 If you wish to run the perplexity metric with batch size 1, the script needs a slight modification. After running the script once, it will download the perplexity module to `~/.cache/huggingface/modules/evaluate_modules/metrics/evaluate-metric--perplexity/<lengthy-download-folder-name>/perplexity.py`. [L122 of `perplexity.py`](https://github.com/huggingface/evaluate/blob/b3820eb820702611cd0c2247743d764f2a7fe916/metrics/perplexity/perplexity.py#L122) needs to be changed to
