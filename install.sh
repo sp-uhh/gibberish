@@ -10,10 +10,10 @@ rm -f $LOG_FILE
 # Some requiremnts are simple, some require hacks 
 
 # Start with the simple ones
-SIMPLE_REQS='torch torchaudio torchcodec distillmos evaluate nemo_toolkit[asr]'
+SIMPLE_REQS='torch torchaudio torchcodec distillmos evaluate nemo_toolkit[all]'
 echo -n 'Installing simple requirements (pip)...'
 pip install ${SIMPLE_REQS} >>$LOG_FILE 2>&1
-echo "Done."
+echo 'Done.'
 
 EXTERNAL_LIBS='./external_libs'
 
@@ -30,15 +30,16 @@ echo -n 'Cloning textlesslib...'
     git clone ${TEXTLESS_REPO}
     cd textlesslib; git checkout ${TEXTLESS_COMMIT}; cd ..
 } >>$LOG_FILE 2>&1 
-echo "Done."
+echo 'Done.'
 
 echo -n 'Patching textlesslib...'
 sed -i '/^numpy==/s/==/>=/; /^numba==/s/==/>=/' ./textlesslib/requirements.txt
-echo "Done."
+echo 'Done.'
 
 echo -n 'Installing textlesslib (pip)...'
 pip install -e ./textlesslib >>$LOG_FILE 2>&1
-echo "Done."
+# rm -rf textlesslib
+echo 'Done.'
 
 # Fairseq is broken on python>=3.11
 # See: https://github.com/facebookresearch/fairseq/issues/5012
@@ -47,14 +48,36 @@ PY_MINOR_VERSION=$(python -c 'import sys; print(sys.version_info.minor)')
 if [[ $PY_MINOR_VERSION -lt 11 ]]; then
     echo 'Python<3.11 => Using official fairseq repo'
     FAIRSEQ_REPO='https://github.com/facebookresearch/fairseq.git'
+    echo -n 'Installing fairseq (pip)...'
+    pip install 'git+'${FAIRSEQ_REPO} >>$LOG_FILE 2>&1
+    echo 'Done.'
 else
     echo 'Python>=3.11 => Using forked fairseq repo'
-    FAIRSEQ_REPO='https://github.com/liyaodev/fairseq.git@b963eac7a04c539ad59fb1e23277f2ff7ee29e74'
-fi
+    FAIRSEQ_REPO='https://github.com/liyaodev/fairseq.git'
+    FAIRSEQ_COMMIT='b963eac7a04c539ad59fb1e23277f2ff7ee29e74'
 
-echo -n 'Installing fairseq (pip)...'
-pip install 'git+'${FAIRSEQ_REPO} >>$LOG_FILE 2>&1
-echo "Done."
+    if [[ -d fairseq ]]; then 
+        echo 'Removing existing fairseq directory.'
+        rm -rf fairseq
+    fi
+
+    echo -n 'Cloning fairseq fork...'
+    {
+        git clone ${FAIRSEQ_REPO}
+        cd fairseq; git checkout ${FAIRSEQ_COMMIT}; cd ..
+    } >>$LOG_FILE 2>&1
+    echo 'Done.'
+    
+    # But then we need to fix a compatibility issue with torch>=2.6
+    echo 'Patching fairseq fork...'
+    sed -i '340s/)$/, weights_only=False)/' fairseq/fairseq/checkpoint_utils.py
+    sed -i '913s/),$/), weights_only=False/' fairseq/fairseq/checkpoint_utils.py
+    echo 'Done.'
+    echo -n 'Installing fairseq fork (pip)...'
+    pip install ./fairseq >>$LOG_FILE 2>&1
+    rm -rf fairseq
+    echo 'Done.'
+fi
 
 # UTMOSv2 needs to be slightly patched to work with our data structure
 UTMOSV2_REPO='https://github.com/sarulab-speech/UTMOSv2.git'
@@ -69,15 +92,16 @@ echo -n 'Cloning UTMOSv2...'
     git clone ${UTMOSV2_REPO}
     cd UTMOSv2; git checkout ${UTMOSV2_COMMIT}; cd ..
 } >>$LOG_FILE 2>&1
-echo "Done."
+echo 'Done.'
 
 echo -n 'Patching UTMOSv2...'
 sed -i '174s/\*\.wav/\*\*\/\*\.wav/' UTMOSv2/utmosv2/_core/model/_common.py
-echo "Done."
+echo 'Done.'
 
 echo -n 'Installing UTMOSv2 (pip)...'
-pip install -e ./UTMOSv2 >>$LOG_FILE 2>&1
-echo "Done."
+pip install ./UTMOSv2 >>$LOG_FILE 2>&1
+rm -rf UTMOSv2
+echo 'Done.'
 
 # SpeechLMScore needs a modified evaluation script
 SPEECHLMSCORE_REPO='https://github.com/soumimaiti/speechlmscore_tool.git'
@@ -92,7 +116,7 @@ echo -n 'Cloning SpeechLMScore...'
     git clone ${SPEECHLMSCORE_REPO} 
     cd speechlmscore_tool; git checkout ${SPEECHLMSCORE_COMMIT}; cd ..
 } >>$LOG_FILE 2>&1
-echo "Done."
+echo 'Done.'
 
 echo -n 'Patching and installing SpeechLMScore...'
 {
@@ -103,6 +127,6 @@ echo -n 'Patching and installing SpeechLMScore...'
     cd ..
 } >>$LOG_FILE 2>&1
 
-echo "Done."
+echo 'Done.'
 echo
-echo "Installation complete."
+echo 'Installation complete.'

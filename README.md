@@ -15,6 +15,8 @@ There is also a script to compute the non-intrusive quality/naturalness scores o
 ./install.sh
 ```
 
+**Note:** This script installs patched versions of `fairseq`, `textlesslib` and `UTMOSv2` using `pip`. If you have any of these packages installed, it is advisable to use a fresh virtual environment to prevent interference.
+
 ### Huggingface's Evaluate (ASR + LLM)
 
 If you wish to run the perplexity metric with batch size 1, the script needs a slight modification. After running the script once, it will download the perplexity module to `~/.cache/huggingface/modules/evaluate_modules/metrics/evaluate-metric--perplexity/<lengthy-download-folder-name>/perplexity.py`. [L122 of `perplexity.py`](https://github.com/huggingface/evaluate/blob/b3820eb820702611cd0c2247743d764f2a7fe916/metrics/perplexity/perplexity.py#L122) needs to be changed to
@@ -81,4 +83,5 @@ The dataset EARS-WHAM Gibberish Test is licensed under the [CC BY-NC 4.0 Interna
 [6] A. Radford, J. Wu, R. Child, D. Luan, D. Amodei, I. Sutskever, et al., "Language models are unsupervised multitask learners," OpenAI blog, vol. 1, no. 8, p. 9, 2019.
 
 [7] B. Stahl and H. Gamper, “Distillation and pruning for scalable self-supervised representation-based speech quality assessment,” in ICASSP 2025-2025 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2025.
+
 [8] Baba, W. Nakata, Y. Saito, and H. Saruwatari, "The t05 system for the VoiceMOS Challenge 2024: Transfer learning from deep image classifier to naturalness MOS prediction of high-quality synthetic speech," in IEEE Spoken Language Technology Workshop (SLT), 2024.
